@@ -35,7 +35,7 @@ def main():
     #widget.look_at([0, 0, 0], [1, 1, 1], [0, 0, 1])
 
     lidar_pcd = o3d.io.read_point_cloud(sensor_readings_files[0])
-    widget.scene.add_geometry('pcd', lidar_pcd, mat)
+    widget.scene.add_geometry(name='pcd', geometry=lidar_pcd, material=mat)
 
     def update_geometry(lidar_pcd_road, lidar_pcd_obstacle, bounding_boxes, image):
         if widget.scene.has_geometry('pcd'):

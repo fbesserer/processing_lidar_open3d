@@ -3,15 +3,33 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
+from open3d.cpu.pybind.geometry import PointCloud
+from open3d.cpu.pybind.visualization import SelectionPolygonVolume
+
+demo_crop_data = o3d.data.DemoCropPointCloud()
+pcd = o3d.io.read_point_cloud(demo_crop_data.point_cloud_path)
+vol: SelectionPolygonVolume = o3d.visualization.read_selection_polygon_volume(demo_crop_data.cropped_json_path)
+chair = vol.crop_point_cloud(pcd)
+o3d.visualization.draw_geometries([pcd],
+                                  zoom=0.7,
+                                  front=[0.5439, -0.2333, -0.8060],
+                                  lookat=[2.4615, 2.1331, 1.338],
+                                  up=[-0.1781, -0.9708, 0.1608])
 
 print("Load a pcd point cloud, print it, and render it")
-pcd = o3d.io.read_point_cloud("/home/henry/2021/lidar-detection/open3d_test_lidar/sensors/data_1/0000000000.pcd")
+pcd: PointCloud = o3d.io.read_point_cloud("sensors/data_1/0000000000.pcd")
 print(pcd)
 print(np.asarray(pcd.points))
-o3d.visualization.draw_geometries(
-    [pcd],
-)
+# o3d.visualization.draw_geometries(
+#     [pcd],
+# )
 
+# Mesh erzeugen
+mesh, _ = pcd.compute_convex_hull()
+hull_ls = o3d.geometry.LineSet.create_from_triangle_mesh(mesh)
+hull_ls.paint_uniform_color((1, 0, 0))
+# o3d.visualization.draw_geometries([pcd, hull_ls])
+print()
 """
 FIRST STEP
 * Filter the initial point cloud, so that the resulting point cloud 
@@ -25,10 +43,18 @@ FIRST STEP
 # Voxel filtering
 
 print("Downsample the point cloud with a voxel of 0.2")
-downpcd = pcd.voxel_down_sample(voxel_size=0.2)
-o3d.visualization.draw_geometries(
-    [downpcd]
-)
+downpcd: PointCloud = pcd.voxel_down_sample(voxel_size=0.2)
+# o3d.visualization.draw_geometries(
+#     [downpcd]
+# )
+
+downpcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
+# o3d.visualization.draw_geometries([downpcd],
+#                                   zoom=0.3412,
+#                                   front=[0.4257, -0.2125, -0.8795],
+#                                   lookat=[2.6172, 2.0475, 1.532],
+#                                   up=[-0.0694, -0.9768, 0.2024],
+#                                   point_show_normal=True)
 
 # Crop the points outside ROI
 
